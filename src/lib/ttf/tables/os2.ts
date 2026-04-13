@@ -1,36 +1,39 @@
-'use strict';
-
-// See documentation here: http://www.microsoft.com/typography/otspec/os2.htm
-
-var _ = require('lodash');
-var identifier = require('../utils.js').identifier;
-var ByteBuffer = require('microbuffer');
+import { identifier } from '../utils';
+import ByteBuffer from 'microbuffer';
+import { Font } from '../../sfnt';
 
 //get first glyph unicode
-function getFirstCharIndex(font) {
-  return Math.max(0, Math.min(0xffff, Math.abs(_.minBy(Object.keys(font.codePoints), function (point) {
-    return parseInt(point, 10);
-  }))));
+function getFirstCharIndex(font: Font) {
+  const keys = Object.keys(font.codePoints);
+  if (keys.length === 0) {
+    return 0;
+  }
+  const minKey = keys.reduce((min, key) => {
+    return parseInt(key, 10) < parseInt(min, 10) ? key : min;
+  });
+  return Math.max(0, Math.min(0xffff, Math.abs(parseInt(minKey, 10))));
 }
 
 //get last glyph unicode
-function getLastCharIndex(font) {
-  return Math.max(0, Math.min(0xffff, Math.abs(_.maxBy(Object.keys(font.codePoints), function (point) {
-    return parseInt(point, 10);
-  }))));
+function getLastCharIndex(font: Font) {
+  const keys = Object.keys(font.codePoints);
+  if (keys.length === 0) {
+    return 0;
+  }
+  const maxKey = keys.reduce((max, key) => {
+    return parseInt(key, 10) > parseInt(max, 10) ? key : max;
+  });
+  return Math.max(0, Math.min(0xffff, Math.abs(parseInt(maxKey, 10))));
 }
 
 // OpenType spec: https://docs.microsoft.com/en-us/typography/opentype/spec/os2
-function createOS2Table(font) {
-
+export default function createOS2Table(font: Font) {
   // use at least 2 for ligatures and kerning
-  var maxContext = font.ligatures.map(function (l) {
-    return l.unicode.length;
-  }).reduce(function (a, b) {
-    return Math.max(a, b);
-  }, 2);
+  const maxContext = font.ligatures
+    .map((l) => l.unicode.length)
+    .reduce((a, b) => Math.max(a, b), 2);
 
-  var buf = new ByteBuffer(96);
+  const buf = new ByteBuffer(96);
 
   // Version 5 is not supported in the Android 5 browser.
   buf.writeUint16(4); // version
@@ -86,5 +89,3 @@ function createOS2Table(font) {
 
   return buf;
 }
-
-module.exports = createOS2Table;

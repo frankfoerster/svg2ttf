@@ -1,0 +1,5 @@
+{
+  "ignorePatterns": [".github/**/*.yml"],
+  "singleQuote": true,
+  "trailingComma": "none"
+}

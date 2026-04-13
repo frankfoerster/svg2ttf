@@ -1,34 +1,29 @@
-'use strict';
+import ByteBuffer from 'microbuffer';
 
-// See documentation here: http://www.microsoft.com/typography/otspec/glyf.htm
+function getFlags(glyph: any) {
+  const result: number[] = [];
 
-var _ = require('lodash');
-var ByteBuffer = require('microbuffer');
-
-function getFlags(glyph) {
-  var result = [];
-
-  _.forEach(glyph.ttfContours, function (contour) {
-    _.forEach(contour, function (point) {
-      var flag = point.onCurve ? 1 : 0;
+  glyph.ttfContours.forEach(function (contour: any[]) {
+    contour.forEach(function (point: any) {
+      let flag = point.onCurve ? 1 : 0;
 
       if (point.x === 0) {
         flag += 16;
       } else {
-        if (-0xFF <= point.x && point.x <= 0xFF) {
+        if (-0xff <= point.x && point.x <= 0xff) {
           flag += 2; // the corresponding x-coordinate is 1 byte long
         }
-        if (point.x > 0 && point.x <= 0xFF) {
+        if (point.x > 0 && point.x <= 0xff) {
           flag += 16; // If x-Short Vector is set, this bit describes the sign of the value, with 1 equalling positive and 0 negative
         }
       }
       if (point.y === 0) {
         flag += 32;
       } else {
-        if (-0xFF <= point.y && point.y <= 0xFF) {
+        if (-0xff <= point.y && point.y <= 0xff) {
           flag += 4; // the corresponding y-coordinate is 1 byte long
         }
-        if (point.y > 0 && point.y <= 0xFF) {
+        if (point.y > 0 && point.y <= 0xff) {
           flag += 32; // If y-Short Vector is set, this bit describes the sign of the value, with 1 equalling positive and 0 negative.
         }
       }
@@ -39,12 +34,12 @@ function getFlags(glyph) {
 }
 
 //repeating flags can be packed
-function compactFlags(flags) {
-  var result = [];
-  var prevFlag = -1;
-  var firstRepeat = false;
+function compactFlags(flags: number[]) {
+  const result: number[] = [];
+  let prevFlag = -1;
+  let firstRepeat = false;
 
-  _.forEach(flags, function (flag) {
+  flags.forEach(function (flag) {
     if (prevFlag === flag) {
       if (firstRepeat) {
         result[result.length - 1] += 8; //current flag repeats previous one, need to set 3rd bit of previous flag and set 1 to the current one
@@ -62,55 +57,56 @@ function compactFlags(flags) {
   return result;
 }
 
-function getCoords(glyph, coordName) {
-  var result = [];
+function getCoords(glyph: any, coordName: string) {
+  const result: any[] = [];
 
-  _.forEach(glyph.ttfContours, function (contour) {
-    result.push.apply(result, _.map(contour, coordName));
+  glyph.ttfContours.forEach(function (contour: any[]) {
+    result.push(...contour.map((p) => p[coordName]));
   });
   return result;
 }
 
-function compactCoords(coords) {
-  return _.filter(coords, function (coord) {
+function compactCoords(coords: number[]) {
+  return coords.filter(function (coord) {
     return coord !== 0;
   });
 }
 
 //calculates length of glyph data in GLYF table
-function glyphDataSize(glyph) {
+function glyphDataSize(glyph: any) {
   // Ignore glyphs without outlines. These will get a length of zero in the “loca” table
   if (!glyph.contours.length) {
     return 0;
   }
 
-  var result = 12; //glyph fixed properties
+  let result = 12; //glyph fixed properties
 
   result += glyph.contours.length * 2; //add contours
 
-  _.forEach(glyph.ttf_x, function (x) {
-    //add 1 or 2 bytes for each coordinate depending of its size
-    result += ((-0xFF <= x && x <= 0xFF)) ? 1 : 2;
+  glyph.ttf_x.forEach(function (x: number) {
+    //add 1 or 2 bytes for each coordinate depending on its size
+    result += -0xff <= x && x <= 0xff ? 1 : 2;
   });
 
-  _.forEach(glyph.ttf_y, function (y) {
-    //add 1 or 2 bytes for each coordinate depending of its size
-    result += ((-0xFF <= y && y <= 0xFF)) ? 1 : 2;
+  glyph.ttf_y.forEach(function (y: number) {
+    //add 1 or 2 bytes for each coordinate depending on its size
+    result += -0xff <= y && y <= 0xff ? 1 : 2;
   });
 
   // Add flags length to glyph size.
   result += glyph.ttf_flags.length;
 
-  if (result % 4 !== 0) { // glyph size must be divisible by 4.
-    result += 4 - result % 4;
+  if (result % 4 !== 0) {
+    // glyph size must be divisible by 4.
+    result += 4 - (result % 4);
   }
   return result;
 }
 
-function tableSize(font) {
-  var result = 0;
+function tableSize(font: any) {
+  let result = 0;
 
-  _.forEach(font.glyphs, function (glyph) {
+  font.glyphs.forEach(function (glyph: any) {
     glyph.ttf_size = glyphDataSize(glyph);
     result += glyph.ttf_size;
   });
@@ -118,9 +114,8 @@ function tableSize(font) {
   return result;
 }
 
-function createGlyfTable(font) {
-
-  _.forEach(font.glyphs, function (glyph) {
+export default function createGlyfTable(font: any) {
+  font.glyphs.forEach(function (glyph: any) {
     glyph.ttf_flags = getFlags(glyph);
     glyph.ttf_flags = compactFlags(glyph.ttf_flags);
     glyph.ttf_x = getCoords(glyph, 'x');
@@ -129,16 +124,15 @@ function createGlyfTable(font) {
     glyph.ttf_y = compactCoords(glyph.ttf_y);
   });
 
-  var buf = new ByteBuffer(tableSize(font));
+  const buf = new ByteBuffer(tableSize(font));
 
-  _.forEach(font.glyphs, function (glyph) {
-
+  font.glyphs.forEach(function (glyph: any) {
     // Ignore glyphs without outlines. These will get a length of zero in the “loca” table
     if (!glyph.contours.length) {
       return;
     }
 
-    var offset = buf.tell();
+    const offset = buf.tell();
 
     buf.writeInt16(glyph.contours.length); // numberOfContours
     buf.writeInt16(glyph.xMin); // xMin
@@ -147,11 +141,11 @@ function createGlyfTable(font) {
     buf.writeInt16(glyph.yMax); // yMax
 
     // Array of end points
-    var endPtsOfContours = -1;
+    let endPtsOfContours = -1;
 
-    var ttfContours = glyph.ttfContours;
+    const ttfContours = glyph.ttfContours;
 
-    _.forEach(ttfContours, function (contour) {
+    ttfContours.forEach(function (contour: any[]) {
       endPtsOfContours += contour.length;
       buf.writeInt16(endPtsOfContours);
     });
@@ -159,13 +153,13 @@ function createGlyfTable(font) {
     buf.writeInt16(0); // instructionLength, is not used here
 
     // Array of flags
-    _.forEach(glyph.ttf_flags, function (flag) {
-      buf.writeInt8(flag);
+    glyph.ttf_flags.forEach(function (flag: number) {
+      buf.writeUint8(flag);
     });
 
     // Array of X relative coordinates
-    _.forEach(glyph.ttf_x, function (x) {
-      if (-0xFF <= x && x <= 0xFF) {
+    glyph.ttf_x.forEach(function (x: number) {
+      if (-0xff <= x && x <= 0xff) {
         buf.writeUint8(Math.abs(x));
       } else {
         buf.writeInt16(x);
@@ -173,17 +167,18 @@ function createGlyfTable(font) {
     });
 
     // Array of Y relative coordinates
-    _.forEach(glyph.ttf_y, function (y) {
-      if (-0xFF <= y && y <= 0xFF) {
+    glyph.ttf_y.forEach(function (y: number) {
+      if (-0xff <= y && y <= 0xff) {
         buf.writeUint8(Math.abs(y));
       } else {
         buf.writeInt16(y);
       }
     });
 
-    var tail = (buf.tell() - offset) % 4;
+    let tail = (buf.tell() - offset) % 4;
 
-    if (tail !== 0) { // glyph size must be divisible by 4.
+    if (tail !== 0) {
+      // glyph size must be divisible by 4.
       for (; tail < 4; tail++) {
         buf.writeUint8(0);
       }
@@ -191,5 +186,3 @@ function createGlyfTable(font) {
   });
   return buf;
 }
-
-module.exports = createGlyfTable;

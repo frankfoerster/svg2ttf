@@ -5,25 +5,19 @@
  Written for fontello.com project.
  */
 
-/*eslint-disable no-console*/
+import fs from 'fs';
+import { ArgumentParser } from 'argparse';
+import svg2ttf from './index';
+import pkg from '../package.json' with { type: 'json' };
 
-'use strict';
-
-
-var fs = require('fs');
-var ArgumentParser = require('argparse').ArgumentParser;
-
-var svg2ttf = require('./');
-
-
-var parser = new ArgumentParser({
+const parser = new ArgumentParser({
   add_help: true,
   description: 'SVG to TTF font converter'
 });
 
 parser.add_argument('-v', '--version', {
   action: 'version',
-  version: require('./package.json').version
+  version: pkg.version
 });
 
 parser.add_argument('-c', '--copyright', {
@@ -65,10 +59,9 @@ parser.add_argument('outfile', {
   help: 'Output file'
 });
 
-
-var args = parser.parse_args();
-var svg;
-var options = {};
+const args = parser.parse_args();
+let svg: string;
+const options: any = {};
 
 try {
   svg = fs.readFileSync(args.infile[0], 'utf-8');
@@ -77,19 +70,26 @@ try {
   process.exit(1);
 }
 
-if (args.copyright) options.copyright = args.copyright;
+if (args.copyright) {
+  options.copyright = args.copyright;
+}
 
-if (args.description) options.description = args.description;
+if (args.description) {
+  options.description = args.description;
+}
 
-if (args.ts !== null) options.ts = args.ts;
+if (args.ts !== null && args.ts !== undefined) {
+  options.ts = args.ts;
+}
 
-if (args.url) options.url = args.url;
+if (args.url) {
+  options.url = args.url;
+}
 
-if (args.vs) options.version = args.vs;
+if (args.vs) {
+  options.version = args.vs;
+}
 
-var result = Buffer.from ?
-  Buffer.from(svg2ttf(svg, options).buffer)
-  :
-  new Buffer(svg2ttf(svg, options).buffer);
+const result = Buffer.from(svg2ttf(svg, options).buffer);
 
 fs.writeFileSync(args.outfile[0], result);

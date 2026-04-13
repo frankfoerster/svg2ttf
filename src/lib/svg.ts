@@ -1,21 +1,18 @@
-'use strict';
+import cubic2quad from 'cubic2quad';
+import svgpath from 'svgpath';
+import { DOMParser } from '@xmldom/xmldom';
+import * as ucs2 from './ucs2';
 
-var _ = require('lodash');
-var cubic2quad = require('cubic2quad');
-var svgpath = require('svgpath');
-var DOMParser = require('@xmldom/xmldom').DOMParser;
-var ucs2 = require('./ucs2');
-
-function getGlyph(glyphElem, fontInfo) {
-  var glyph = {};
+export function getGlyph(glyphElem: any, fontInfo: any) {
+  const glyph: any = {};
 
   if (glyphElem.hasAttribute('d')) {
     glyph.d = glyphElem.getAttribute('d').trim();
   } else {
     // try nested <path>
-    var pathElem = glyphElem.getElementsByTagName('path')[0];
+    const pathElem = glyphElem.getElementsByTagName('path')[0];
 
-    if (pathElem.hasAttribute('d')) {
+    if (pathElem && pathElem.hasAttribute('d')) {
       // <path> has reversed Y axis
       glyph.d = svgpath(pathElem.getAttribute('d'))
         .scale(1, -1)
@@ -30,7 +27,7 @@ function getGlyph(glyphElem, fontInfo) {
 
   if (glyphElem.getAttribute('unicode')) {
     glyph.character = glyphElem.getAttribute('unicode');
-    var unicode = ucs2.decode(glyph.character);
+    const unicode = ucs2.decode(glyph.character);
 
     // If more than one code point is involved, the glyph is a ligature glyph
     if (unicode.length > 1) {
@@ -50,13 +47,13 @@ function getGlyph(glyphElem, fontInfo) {
   return glyph;
 }
 
-function deduplicateGlyps(glyphs, ligatures) {
+export function deduplicateGlyps(glyphs: any[], ligatures: any[]) {
   // Result (the list of unique glyphs)
-  var result = [];
+  const result: any[] = [];
 
-  _.forEach(glyphs, function (glyph) {
+  glyphs.forEach(function (glyph) {
     // Search for glyphs with the same properties (width and d)
-    var canonical = _.find(result, { width: glyph.width, d: glyph.d });
+    const canonical = result.find((r) => r.width === glyph.width && r.d === glyph.d);
 
     if (canonical) {
       // Add the code points to the unicode array.
@@ -69,8 +66,8 @@ function deduplicateGlyps(glyphs, ligatures) {
   });
 
   // Update ligatures to point to the canonical version
-  _.forEach(ligatures, function (ligature) {
-    while (_.has(ligature.glyph, 'canonical')) {
+  ligatures.forEach(function (ligature) {
+    while (ligature.glyph && ligature.glyph.canonical) {
       ligature.glyph = ligature.glyph.canonical;
     }
   });
@@ -78,12 +75,12 @@ function deduplicateGlyps(glyphs, ligatures) {
   return result;
 }
 
-function load(str) {
-  var attrs;
+export function load(str: string) {
+  let attrs: any;
 
-  var doc = (new DOMParser()).parseFromString(str, 'application/xml');
+  const doc = new DOMParser().parseFromString(str, 'application/xml');
 
-  var metadata, fontElem, fontFaceElem;
+  let metadata, fontElem, fontFaceElem;
 
   metadata = doc.getElementsByTagName('metadata')[0];
   fontElem = doc.getElementsByTagName('font')[0];
@@ -94,12 +91,14 @@ function load(str) {
 
   fontFaceElem = fontElem.getElementsByTagName('font-face')[0];
 
-  var familyName = fontFaceElem.getAttribute('font-family') || 'fontello';
-  var subfamilyName = fontFaceElem.getAttribute('font-style') || 'Regular';
-  // eslint-disable-next-line no-useless-escape
-  var id = fontElem.getAttribute('id') || (familyName + '-' + subfamilyName).replace(/[\s\(\)\[\]<>%\/]/g, '').substr(0, 62);
+  const familyName = fontFaceElem.getAttribute('font-family') || 'fontello';
+  const subfamilyName = fontFaceElem.getAttribute('font-style') || 'Regular';
+  const id =
+    fontElem.getAttribute('id') ||
+    // eslint-disable-next-line no-useless-escape
+    (familyName + '-' + subfamilyName).replace(/[\s()\[\]<>%/]/g, '').substring(0, 62);
 
-  var font = {
+  const font: any = {
     id: id,
     familyName: familyName,
     subfamilyName: subfamilyName,
@@ -113,54 +112,58 @@ function load(str) {
 
   // Get <font> numeric attributes
   attrs = {
-    width:        'horiz-adv-x',
+    width: 'horiz-adv-x',
     //height:       'vert-adv-y',
     horizOriginX: 'horiz-origin-x',
     horizOriginY: 'horiz-origin-y',
-    vertOriginX:  'vert-origin-x',
-    vertOriginY:  'vert-origin-y'
+    vertOriginX: 'vert-origin-x',
+    vertOriginY: 'vert-origin-y'
   };
-  _.forEach(attrs, function (val, key) {
-    if (fontElem.hasAttribute(val)) { font[key] = parseInt(fontElem.getAttribute(val), 10); }
+  Object.entries(attrs).forEach(function ([key, val]) {
+    if (fontElem.hasAttribute(val as string)) {
+      font[key] = parseInt(fontElem.getAttribute(val as string)!, 10);
+    }
   });
 
   // Get <font-face> numeric attributes
   attrs = {
-    ascent:     'ascent',
-    descent:    'descent',
+    ascent: 'ascent',
+    descent: 'descent',
     unitsPerEm: 'units-per-em',
-    capHeight:  'cap-height',
-    xHeight:    'x-height',
+    capHeight: 'cap-height',
+    xHeight: 'x-height',
     underlineThickness: 'underline-thickness',
-    underlinePosition:  'underline-position'
+    underlinePosition: 'underline-position'
   };
-  _.forEach(attrs, function (val, key) {
-    if (fontFaceElem.hasAttribute(val)) { font[key] = parseInt(fontFaceElem.getAttribute(val), 10); }
+  Object.entries(attrs).forEach(function ([key, val]) {
+    if (fontFaceElem.hasAttribute(val as string)) {
+      font[key] = parseInt(fontFaceElem.getAttribute(val as string)!, 10);
+    }
   });
 
   if (fontFaceElem.hasAttribute('font-weight')) {
     font.weightClass = fontFaceElem.getAttribute('font-weight');
   }
 
-  var missingGlyphElem = fontElem.getElementsByTagName('missing-glyph')[0];
+  const missingGlyphElem = fontElem.getElementsByTagName('missing-glyph')[0];
 
   if (missingGlyphElem) {
-
     font.missingGlyph = {};
     font.missingGlyph.d = missingGlyphElem.getAttribute('d') || '';
 
-    if (missingGlyphElem.getAttribute('horiz-adv-x')) {
-      font.missingGlyph.width = parseInt(missingGlyphElem.getAttribute('horiz-adv-x'), 10);
+    const horizAdvX = missingGlyphElem.getAttribute('horiz-adv-x');
+    if (horizAdvX) {
+      font.missingGlyph.width = parseInt(horizAdvX, 10);
     }
   }
 
-  var glyphs = [];
-  var ligatures = [];
+  let glyphs: any[] = [];
+  const ligatures: any[] = [];
 
-  _.forEach(fontElem.getElementsByTagName('glyph'), function (glyphElem) {
-    var glyph = getGlyph(glyphElem, font);
+  Array.from(fontElem.getElementsByTagName('glyph')).forEach(function (glyphElem: any) {
+    const glyph = getGlyph(glyphElem, font);
 
-    if (_.has(glyph, 'ligature')) {
+    if (glyph.ligature) {
       ligatures.push({
         ligature: glyph.ligature,
         unicode: glyph.ligatureCodes,
@@ -179,44 +182,45 @@ function load(str) {
   return font;
 }
 
-
-function cubicToQuad(segment, index, x, y, accuracy) {
+export function cubicToQuad(segment: any[], index: number, x: number, y: number, accuracy: number) {
   if (segment[0] === 'C') {
-    var quadCurves = cubic2quad(
-      x, y,
-      segment[1], segment[2],
-      segment[3], segment[4],
-      segment[5], segment[6],
+    const quadCurves = cubic2quad(
+      x,
+      y,
+      segment[1],
+      segment[2],
+      segment[3],
+      segment[4],
+      segment[5],
+      segment[6],
       accuracy
     );
 
-    var res = [];
+    const res = [];
 
-    for (var i = 2; i < quadCurves.length; i += 4) {
-      res.push([ 'Q', quadCurves[i], quadCurves[i + 1], quadCurves[i + 2], quadCurves[i + 3] ]);
+    for (let i = 2; i < quadCurves.length; i += 4) {
+      res.push(['Q', quadCurves[i], quadCurves[i + 1], quadCurves[i + 2], quadCurves[i + 3]]);
     }
     return res;
   }
 }
 
-
 // Converts svg points to contours.  All points must be converted
 // to relative ones, smooth curves must be converted to generic ones
 // before this conversion.
 //
-function toSfntCoutours(svgPath) {
-  var resContours = [];
-  var resContour = [];
+export function toSfntCoutours(svgPath: any) {
+  const resContours: any[] = [];
+  let resContour: any[] = [];
 
-  svgPath.iterate(function (segment, index, x, y) {
-
+  svgPath.iterate(function (segment: any[], index: number, x: number, y: number) {
     //start new contour
     if (index === 0 || segment[0] === 'M') {
       resContour = [];
       resContours.push(resContour);
     }
 
-    var name = segment[0];
+    const name = segment[0];
 
     if (name === 'Q') {
       //add control point of quad spline, it is not on curve
@@ -232,14 +236,12 @@ function toSfntCoutours(svgPath) {
       resContour.push({ x: x, y: segment[1], onCurve: true });
     } else if (name !== 'Z') {
       // for all commands (except H and V) X and Y are placed in the end of the segment
-      resContour.push({ x: segment[segment.length - 2], y: segment[segment.length - 1], onCurve: true });
+      resContour.push({
+        x: segment[segment.length - 2],
+        y: segment[segment.length - 1],
+        onCurve: true
+      });
     }
-
   });
   return resContours;
 }
-
-
-module.exports.load = load;
-module.exports.cubicToQuad = cubicToQuad;
-module.exports.toSfntCoutours = toSfntCoutours;

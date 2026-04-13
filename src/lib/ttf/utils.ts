@@ -1,13 +1,10 @@
-'use strict';
-
-var _ = require('lodash');
-var math = require('../math');
+import * as math from '../math';
 
 // Remove points, that looks like straight line
-function simplify(contours, accuracy) {
-  return _.map(contours, function (contour) {
-    var i, curr, prev, next;
-    var p, pPrev, pNext;
+export function simplify(contours: any[][], accuracy: number): any[][] {
+  return contours.map(function (contour) {
+    let i, curr, prev, next;
+    let p, pPrev, pNext;
 
     // run from the end, to simplify array elements removal
     for (i = contour.length - 2; i > 1; i--) {
@@ -32,21 +29,21 @@ function simplify(contours, accuracy) {
 
 // Remove interpolateable oncurve points
 // Those should be in the middle of nebor offcurve points
-function interpolate(contours, accuracy) {
-  return _.map(contours, function (contour) {
-    var resContour = [];
+export function interpolate(contours: any[][], accuracy: number): any[][] {
+  return contours.map(function (contour) {
+    const resContour: any[] = [];
 
-    _.forEach(contour, function (point, idx) {
+    contour.forEach(function (point, idx) {
       // Never skip first and last points
-      if (idx === 0 || idx === (contour.length - 1)) {
+      if (idx === 0 || idx === contour.length - 1) {
         resContour.push(point);
         return;
       }
 
-      var prev = contour[idx - 1];
-      var next = contour[idx + 1];
+      const prev = contour[idx - 1];
+      const next = contour[idx + 1];
 
-      var p, pPrev, pNext;
+      let p, pPrev, pNext;
 
       // skip interpolateable oncurve points (if exactly between previous and next offcurves)
       if (!prev.onCurve && point.onCurve && !next.onCurve) {
@@ -64,9 +61,9 @@ function interpolate(contours, accuracy) {
   });
 }
 
-function roundPoints(contours) {
-  return _.map(contours, function (contour) {
-    return _.map(contour, function (point) {
+export function roundPoints(contours: any[][]): any[][] {
+  return contours.map(function (contour) {
+    return contour.map(function (point) {
       return { x: Math.round(point.x), y: Math.round(point.y), onCurve: point.onCurve };
     });
   });
@@ -74,28 +71,30 @@ function roundPoints(contours) {
 
 // Remove closing point if it is the same as first point of contour.
 // TTF doesn't need this point when drawing contours.
-function removeClosingReturnPoints(contours) {
-  return _.map(contours, function (contour) {
-    var length = contour.length;
+export function removeClosingReturnPoints(contours: any[][]): any[][] {
+  return contours.map(function (contour) {
+    const length = contour.length;
 
-    if (length > 1 &&
+    if (
+      length > 1 &&
       contour[0].x === contour[length - 1].x &&
-      contour[0].y === contour[length - 1].y) {
+      contour[0].y === contour[length - 1].y
+    ) {
       contour.splice(length - 1);
     }
     return contour;
   });
 }
 
-function toRelative(contours) {
-  var prevPoint = { x: 0, y: 0 };
-  var resContours = [];
-  var resContour;
+export function toRelative(contours: any[][]): any[][] {
+  let prevPoint = { x: 0, y: 0 };
+  const resContours: any[][] = [];
+  let resContour: any[];
 
-  _.forEach(contours, function (contour) {
+  contours.forEach(function (contour) {
     resContour = [];
     resContours.push(resContour);
-    _.forEach(contour, function (point) {
+    contour.forEach(function (point) {
       resContour.push({
         x: point.x - prevPoint.x,
         y: point.y - prevPoint.y,
@@ -107,23 +106,15 @@ function toRelative(contours) {
   return resContours;
 }
 
-function identifier(string, littleEndian) {
-  var result = 0;
+export function identifier(string: string, littleEndian?: boolean): number {
+  let result = 0;
 
-  for (var i = 0; i < string.length; i++) {
+  for (let i = 0; i < string.length; i++) {
     result = result << 8;
-    var index = littleEndian ? string.length - i - 1 : i;
+    const index = littleEndian ? string.length - i - 1 : i;
 
     result += string.charCodeAt(index);
   }
 
   return result;
 }
-
-module.exports.interpolate = interpolate;
-module.exports.simplify = simplify;
-module.exports.roundPoints = roundPoints;
-module.exports.removeClosingReturnPoints = removeClosingReturnPoints;
-module.exports.toRelative = toRelative;
-module.exports.identifier = identifier;
-

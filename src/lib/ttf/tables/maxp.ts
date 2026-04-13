@@ -1,31 +1,29 @@
-'use strict';
-
-// See documentation here: http://www.microsoft.com/typography/otspec/maxp.htm
-
-var _ = require('lodash');
-var ByteBuffer = require('microbuffer');
+import ByteBuffer from 'microbuffer';
 
 // Find max points in glyph TTF contours.
-function getMaxPoints(font) {
-  return _.max(_.map(font.glyphs, function (glyph) {
-    return _.reduce(glyph.ttfContours, function (sum, ctr) { return sum + ctr.length; }, 0);
-  }));
+function getMaxPoints(font: any) {
+  const pointsCounts = font.glyphs.map(function (glyph: any) {
+    return glyph.ttfContours.reduce(function (sum: number, ctr: any[]) {
+      return sum + ctr.length;
+    }, 0);
+  });
+  return pointsCounts.length > 0 ? Math.max(...pointsCounts) : 0;
 }
 
-function getMaxContours(font) {
-  return _.max(_.map(font.glyphs, function (glyph) {
+function getMaxContours(font: any) {
+  const contoursCounts = font.glyphs.map(function (glyph: any) {
     return glyph.ttfContours.length;
-  }));
+  });
+  return contoursCounts.length > 0 ? Math.max(...contoursCounts) : 0;
 }
 
-function createMaxpTable(font) {
-
-  var buf = new ByteBuffer(32);
+export default function createMaxpTable(font: any) {
+  const buf = new ByteBuffer(32);
 
   buf.writeInt32(0x10000); // version
   buf.writeUint16(font.glyphs.length); // numGlyphs
-  buf.writeUint16(getMaxPoints(font)); // maxPoints
-  buf.writeUint16(getMaxContours(font)); // maxContours
+  buf.writeUint16(getMaxPoints(font) || 0); // maxPoints
+  buf.writeUint16(getMaxContours(font) || 0); // maxContours
   buf.writeUint16(0); // maxCompositePoints
   buf.writeUint16(0); // maxCompositeContours
   buf.writeUint16(2); // maxZones
@@ -42,5 +40,3 @@ function createMaxpTable(font) {
 
   return buf;
 }
-
-module.exports = createMaxpTable;

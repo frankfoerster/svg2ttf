@@ -1,12 +1,7 @@
-'use strict';
+import ByteBuffer from 'microbuffer';
 
-// See documentation here: http://www.microsoft.com/typography/otspec/hhea.htm
-
-var ByteBuffer = require('microbuffer');
-
-function createHHeadTable(font) {
-
-  var buf = new ByteBuffer(36); // fixed table length
+export default function createHHeadTable(font: any) {
+  const buf = new ByteBuffer(36); // fixed table length
 
   buf.writeInt32(0x10000); // version
   buf.writeInt16(font.ascent); // ascent
@@ -27,5 +22,3 @@ function createHHeadTable(font) {
 
   return buf;
 }
-
-module.exports = createHHeadTable;

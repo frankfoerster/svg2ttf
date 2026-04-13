@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import opentype from 'opentype.js';
-import svg2ttf from '../index.js';
+import svg2ttf from '../src/index.ts';
 
 const fixture = `<?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
@@ -40,7 +40,6 @@ describe('svg2ttf', function () {
     });
   });
 
-
   describe('glyphs', function () {
     it('should return 3 glyphs', function () {
       let parsed = opentype.parse(svg2ttf(fixture).buffer.buffer);
@@ -52,7 +51,6 @@ describe('svg2ttf', function () {
     });
   });
 
-
   describe('os/2 table', function () {
     it('winAscent + winDescent should include line gap', function () {
       let parsed = opentype.parse(svg2ttf(fixture).buffer.buffer);
@@ -61,7 +59,9 @@ describe('svg2ttf', function () {
       // https://www.high-logic.com/font-editor/fontcreator/tutorials/font-metrics-vertical-line-spacing
 
       // always should be >=, but for this specific test they should be equal
-      expect(os2.usWinAscent + os2.usWinDescent).toBe(os2.sTypoAscender - os2.sTypoDescender + os2.sTypoLineGap);
+      expect(os2.usWinAscent + os2.usWinDescent).toBe(
+        os2.sTypoAscender - os2.sTypoDescender + os2.sTypoLineGap
+      );
     });
 
     it('os2.version = 4', function () {
@@ -72,9 +72,9 @@ describe('svg2ttf', function () {
     });
   });
 
-
   it('should return an error if glyph has too large bounding box', function () {
-    expect(() => svg2ttf(`<?xml version="1.0" standalone="no"?>
+    expect(() =>
+      svg2ttf(`<?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg xmlns="http://www.w3.org/2000/svg">
 <defs>
@@ -83,6 +83,7 @@ describe('svg2ttf', function () {
 <glyph glyph-name="test" unicode="&#x1234;" d="M62464 0H0v1024h62464V0z" />
 </font>
 </defs>
-</svg>`)).toThrow(/xMax value .* is out of bounds/);
+</svg>`)
+    ).toThrow(/xMax value .* is out of bounds/);
   });
 });
