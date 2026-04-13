@@ -1,13 +1,13 @@
 svg2ttf
 =======
 
-[![CI](https://github.com/fontello/svg2ttf/actions/workflows/ci.yml/badge.svg)](https://github.com/fontello/svg2ttf/actions/workflows/ci.yml)
+[![Tests](https://github.com/frankfoerster/svg2ttf/actions/workflows/test.yml/badge.svg)](https://github.com/frankfoerster/svg2ttf/actions/workflows/test.yml)
 [![NPM version](https://img.shields.io/npm/v/svg2ttf.svg?style=flat)](https://www.npmjs.org/package/svg2ttf)
 
 > Converts SVG fonts to TTF format. It was initially written for
 [Fontello](http://fontello.com), but you can find it useful for your projects.
 
-__For developpers:__
+__For developers:__
 
 Internal API is similar to FontForge's one. Since primary goal
 is generating iconic fonts, sources can lack some specific TTF/OTF features,
