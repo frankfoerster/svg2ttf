@@ -1,5 +1,13 @@
 # Changelog
 
+## 6.1.0 / 2026-04-13
+
+- Migrate codebase to TypeScript.
+- Replace `mocha` with `vitest` for testing and `eslint` with `oxlint`.
+- Add end-to-end (E2E) test for SVG to TTF conversion.
+- Update project documentation and CI workflows.
+- Update dependencies.
+
 ## 6.0.3 / 2021-08-21
 
 - xmldom => @xmldom/xmldom
