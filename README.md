@@ -1,13 +1,12 @@
-svg2ttf
-=======
+# svg2ttf
 
 [![Tests](https://github.com/frankfoerster/svg2ttf/actions/workflows/test.yml/badge.svg)](https://github.com/frankfoerster/svg2ttf/actions/workflows/test.yml)
 [![NPM version](https://img.shields.io/npm/v/svg2ttf.svg?style=flat)](https://www.npmjs.org/package/svg2ttf)
 
 > Converts SVG fonts to TTF format. It was initially written for
-[Fontello](http://fontello.com), but you can find it useful for your projects.
+> [Fontello](http://fontello.com), but you can find it useful for your projects.
 
-__For developers:__
+**For developers:**
 
 Internal API is similar to FontForge's one. Since primary goal
 is generating iconic fonts, sources can lack some specific TTF/OTF features,
@@ -15,25 +14,21 @@ like kerning and so on. Anyway, current code is a good base for development,
 because it will save you tons of hours to implement correct writing & optimizing
 TTF tables.
 
-
-Using from CLI
-----------------
+## Using from CLI
 
 Install:
 
-``` bash
+```bash
 npm install -g svg2ttf
 ```
 
 Usage example:
 
-``` bash
+```bash
 svg2ttf fontello.svg fontello.ttf
 ```
 
-
-API
----
+## API
 
 ### svg2ttf(svgFontString, options) -> buf
 
@@ -45,19 +40,18 @@ API
   - `url` - manufacturer url (optional)
   - `version` - font version string, can be `Version x.y` or `x.y`.
 - `buf` - internal [byte buffer](https://github.com/fontello/microbuffer)
-   object, similar to DataView. It's `buffer` property is  `Uin8Array` or `Array`
-   with ttf content.
+  object, similar to DataView. It's `buffer` property is `Uin8Array` or `Array`
+  with ttf content.
 
 Example:
 
-``` javascript
-var fs = require('fs');
-var svg2ttf = require('svg2ttf');
+```javascript
+import fs from 'node:fs';
+import svg2ttf from '@frankfoerster/svg2ttf';
 
-var ttf = svg2ttf(fs.readFileSync('myfont.svg', 'utf8'), {});
+const ttf = svg2ttf(fs.readFileSync('myfont.svg', 'utf8'), {});
 fs.writeFileSync('myfont.ttf', new Buffer(ttf.buffer));
 ```
-
 
 ## svg2ttf for enterprise
 
