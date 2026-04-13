@@ -42,6 +42,7 @@ function svg2ttf(svgString, options) {
 
   versionString = 'Version ' + versionString.match(VERSION_RE)[2];
   font.sfntNames.push({ id: 5, value: versionString }); // version ID for TTF name table
+  // eslint-disable-next-line no-useless-escape
   font.sfntNames.push({ id: 6, value: (options.fullname || svgFont.id).replace(/[\s\(\)\[\]<>%\/]/g, '').substr(0, 62) }); // Postscript name for the font, required for OSX Font Book
 
   if (typeof options.ts !== 'undefined') {

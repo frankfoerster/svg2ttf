@@ -72,7 +72,7 @@ var options = {};
 
 try {
   svg = fs.readFileSync(args.infile[0], 'utf-8');
-} catch (e) {
+} catch {
   console.error("Can't open input file (%s)", args.infile[0]);
   process.exit(1);
 }

@@ -36,7 +36,7 @@ var ttf;
 
 try {
   ttf = fs.readFileSync(args.infile[0]);
-} catch (e) {
+} catch {
   console.error("Can't open input file (%s)", args.infile[0]);
   process.exit(1);
 }
