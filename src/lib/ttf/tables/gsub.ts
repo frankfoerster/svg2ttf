@@ -3,18 +3,16 @@ import ByteBuffer from 'microbuffer';
 
 function createScript() {
   const scriptRecord =
-    0 +
     2 + // Script DefaultLangSys Offset
     2; // Script[0] LangSysCount (0)
 
   const langSys =
-    0 +
     2 + // Script DefaultLangSys LookupOrder
     2 + // Script DefaultLangSys ReqFeatureIndex
     2 + // Script DefaultLangSys FeatureCount (0?)
     2; // Script Optional Feature Index[0]
 
-  const length = 0 + scriptRecord + langSys;
+  const length = scriptRecord + langSys;
 
   const buffer = new ByteBuffer(length);
 
@@ -40,7 +38,6 @@ function createScript() {
 
 function createScriptList() {
   const scriptSize =
-    0 +
     4 + // Tag
     2; // Offset
 
@@ -51,7 +48,6 @@ function createScriptList() {
   ];
 
   const header =
-    0 +
     2 + // Script count
     scripts.length * scriptSize;
 
@@ -63,7 +59,7 @@ function createScriptList() {
       return result + count;
     }, 0);
 
-  const length = 0 + header + tableLengths;
+  const length = header + tableLengths;
 
   const buffer = new ByteBuffer(length);
 
@@ -98,13 +94,11 @@ function createScriptList() {
 // Write one feature containing all ligatures
 function createFeatureList() {
   const header =
-    0 +
     2 + // FeatureCount
     4 + // FeatureTag[0]
     2; // Feature Offset[0]
 
   const length =
-    0 +
     header +
     2 + // FeatureParams[0]
     2 + // LookupCount[0]
@@ -132,7 +126,6 @@ function createLigatureCoverage(font: any, ligatureGroups: any[]) {
   const glyphCount = ligatureGroups.length;
 
   const length =
-    0 +
     2 + // CoverageFormat
     2 + // GlyphCount
     2 * glyphCount; // GlyphID[i]
@@ -158,7 +151,6 @@ function createLigatureTable(font: any, ligature: any) {
   const unicode = ligature.unicode;
 
   const length =
-    0 +
     2 + // LigGlyph
     2 + // CompCount
     2 * (unicode.length - 1);
@@ -196,11 +188,10 @@ function createLigatureSet(font: any, codePoint: number, ligatures: any[]) {
     }, 0);
 
   let offset =
-    0 +
     2 + // LigatureCount
     2 * ligatures.length;
 
-  const length = 0 + offset + tableLengths;
+  const length = offset + tableLengths;
 
   const buffer = new ByteBuffer(length);
 
@@ -240,14 +231,12 @@ function createLigatureList(font: any, ligatureGroups: any[]) {
   const coverage = createLigatureCoverage(font, ligatureGroups);
 
   const tableOffset =
-    0 +
     2 + // Lookup type
     2 + // Lokup flag
     2 + // SubTableCount
     2; // SubTable[0] Offset
 
   let setOffset =
-    0 +
     2 + // SubstFormat
     2 + // Coverage offset
     2 + // LigSetCount
@@ -255,7 +244,7 @@ function createLigatureList(font: any, ligatureGroups: any[]) {
 
   const coverageOffset = setOffset + setLengths;
 
-  const length = 0 + tableOffset + coverageOffset + coverage.length;
+  const length = tableOffset + coverageOffset + coverage.length;
 
   const buffer = new ByteBuffer(length);
 
@@ -333,13 +322,12 @@ function createLookupList(font: any) {
   });
 
   const offset =
-    0 +
     2 + // Lookup count
     2; // Lookup[0] offset
 
   const set = createLigatureList(font, ligatureGroups);
 
-  const length = 0 + offset + set.length;
+  const length = offset + set.length;
 
   const buffer = new ByteBuffer(length);
 
@@ -363,7 +351,6 @@ export default function createGSUB(font: any) {
   const lists = [scriptList, featureList, lookupList];
 
   let offset =
-    0 +
     4 + // Version
     2 * lists.length; // List offsets
 

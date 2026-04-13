@@ -131,7 +131,6 @@ function createFormat4Table(font: any) {
     }, 0);
 
   const length =
-    0 +
     2 + // segCountX2
     2 + // searchRange
     2 + // entrySelector
@@ -197,7 +196,6 @@ function createFormat12Table(font: any) {
   const codePoints = getCodePoints(font.codePoints);
 
   const length =
-    0 +
     4 + // nGroups
     4 * codePoints.length + // startCharCode
     4 * codePoints.length + // endCharCode
@@ -217,7 +215,6 @@ function createFormat12Table(font: any) {
 
 export default function createCMapTable(font: any) {
   const TABLE_HEAD =
-    0 +
     2 + // platform
     2 + // encoding
     4; // offset
@@ -263,7 +260,6 @@ export default function createCMapTable(font: any) {
   const tables = [twoByteTable, singleByteTable, fourByteTable];
 
   let tableOffset =
-    0 +
     2 + // version
     2 + // number of subtable headers
     tableHeaders.length * TABLE_HEAD;
