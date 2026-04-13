@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: "Test"
+    name: 'Test'
     runs-on: ubuntu-latest
 
     strategy:
@@ -21,16 +21,16 @@ jobs:
           - 25.9.0
 
     steps:
-      - name: "Checkout"
+      - name: 'Checkout'
         uses: actions/checkout@v6
 
-      - name: "Setup Node.js ${{ matrix.node-version }}"
+      - name: 'Setup Node.js ${{ matrix.node-version }}'
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: "Install dependencies"
+      - name: 'Install dependencies'
         run: npm install
 
-      - name: "Run tests"
+      - name: 'Run tests'
         run: npm run test
