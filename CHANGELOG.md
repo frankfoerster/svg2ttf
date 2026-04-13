@@ -1,12 +1,16 @@
 # Changelog
 
+## 6.1.1 / 2026-04-13
+
+- Updated publishing CI workflow.
+
 ## 6.1.0 / 2026-04-13
 
-- Migrate codebase to TypeScript.
-- Replace `mocha` with `vitest` for testing and `eslint` with `oxlint`.
-- Add end-to-end (E2E) test for SVG to TTF conversion.
-- Update project documentation and CI workflows.
-- Update dependencies.
+- Migrated codebase to TypeScript.
+- Replaced `mocha` with `vitest` for testing and `eslint` with `oxlint`.
+- Added end-to-end (E2E) test for SVG to TTF conversion.
+- Updated project documentation and CI workflows.
+- Updated dependencies.
 
 ## 6.0.3 / 2021-08-21
 
