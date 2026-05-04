@@ -1,7 +1,7 @@
 # svg2ttf
 
 [![Tests](https://github.com/frankfoerster/svg2ttf/actions/workflows/test.yml/badge.svg)](https://github.com/frankfoerster/svg2ttf/actions/workflows/test.yml)
-[![NPM version](https://img.shields.io/npm/v/svg2ttf.svg?style=flat)](https://www.npmjs.org/package/svg2ttf)
+[![NPM version](https://img.shields.io/npm/v/@frankfoerster/svg2ttf.svg?style=flat)](https://www.npmjs.com/package/@frankfoerster/svg2ttf)
 
 > Converts SVG fonts to TTF format. It was initially written for
 > [Fontello](http://fontello.com), but you can find it useful for your projects.
@@ -19,7 +19,7 @@ TTF tables.
 Install:
 
 ```bash
-npm install -g svg2ttf
+npm install -g @frankfoerster/svg2ttf
 ```
 
 Usage example:
