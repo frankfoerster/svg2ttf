@@ -28,15 +28,15 @@ describe('svg2ttf', function () {
 
       options = { version: '1.0' };
       parsed = opentype.parse(svg2ttf(fixture, options).buffer.buffer);
-      expect(parsed.tables.name.version.en).toBe('Version 1.0');
+      expect(parsed.tables.name.macintosh.version.en).toBe('Version 1.0');
 
       options = { version: 'Version 1.0' };
       parsed = opentype.parse(svg2ttf(fixture, options).buffer.buffer);
-      expect(parsed.tables.name.version.en).toBe('Version 1.0');
+      expect(parsed.tables.name.macintosh.version.en).toBe('Version 1.0');
 
       options = { version: 'version 2.0' };
       parsed = opentype.parse(svg2ttf(fixture, options).buffer.buffer);
-      expect(parsed.tables.name.version.en).toBe('Version 2.0');
+      expect(parsed.tables.name.macintosh.version.en).toBe('Version 2.0');
     });
   });
 
