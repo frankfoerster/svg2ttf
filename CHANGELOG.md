@@ -1,5 +1,14 @@
 # Changelog
 
+## 6.1.3 / 2026-07-21
+
+- Updated dependencies.
+
+## 6.1.2 / 2026-05-04
+
+- Updated publishing CI workflow
+- Updated dependencies.
+
 ## 6.1.1 / 2026-04-13
 
 - Updated publishing CI workflow.
