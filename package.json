@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@xmldom/xmldom": "^0.9.10",
-    "argparse": "^2.0.1",
+    "argparse": "^3.0.0",
     "cubic2quad": "^1.2.1",
     "microbuffer": "^1.0.0",
     "svgpath": "^2.6.0"
