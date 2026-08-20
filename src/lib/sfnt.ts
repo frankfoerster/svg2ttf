@@ -6,8 +6,31 @@ export interface Ligature {
   glyph: Glyph;
 }
 
+export interface Color {
+  red: number;
+  green: number;
+  blue: number;
+  alpha: number;
+}
+
+export interface ColorLayer {
+  glyphID: number;
+  paletteIndex: number;
+}
+
+export interface ColorBaseGlyph {
+  glyphID: number;
+  layers: ColorLayer[];
+}
+
+export interface ColorFont {
+  baseGlyphs: ColorBaseGlyph[];
+  palettes: Color[][];
+}
+
 export class Font {
   ascent: number = 850;
+  colorFont?: ColorFont;
   copyright: string = '';
   createdDate: Date = new Date();
   description: string = '';

@@ -53,6 +53,46 @@ const ttf = svg2ttf(fs.readFileSync('myfont.svg', 'utf8'), {});
 fs.writeFileSync('myfont.ttf', new Buffer(ttf.buffer));
 ```
 
+### Color fonts
+
+The optional `colorFont` setting creates OpenType `COLR` version 0 and `CPAL` version 0 tables.
+The SVG font must already contain every base and layer glyph referenced by name:
+
+```javascript
+const ttf = svg2ttf(svgFont, {
+  colorFont: {
+    baseGlyphs: [
+      {
+        glyphName: 'weather',
+        layers: [
+          { glyphName: 'weather-sun', paletteIndex: 0 },
+          { glyphName: 'weather-cloud', paletteIndex: 1 },
+          { glyphName: 'weather-outline', paletteIndex: 0xffff }
+        ]
+      }
+    ],
+    palettes: [
+      [
+        { red: 255, green: 204, blue: 0, alpha: 255 },
+        { red: 210, green: 220, blue: 230, alpha: 255 }
+      ],
+      [
+        { red: 255, green: 128, blue: 0, alpha: 255 },
+        { red: 80, green: 90, blue: 100, alpha: 255 }
+      ]
+    ]
+  }
+});
+```
+
+All palettes must be non-empty and contain the same number of RGBA entries. Each channel is an
+integer from 0 to 255. Layer palette indices select an entry in every palette; `0xFFFF` uses the
+foreground color (`currentColor`) instead.
+
+`svg2ttf` resolves existing glyph names to their final IDs, validates the manifest, and writes the
+color tables. It does not parse source icon artwork or split paths into layers; upstream SVG tooling
+is responsible for preparing the base and layer glyph geometry.
+
 ## svg2ttf for enterprise
 
 Available as part of the Tidelift Subscription.

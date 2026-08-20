@@ -11,6 +11,8 @@ import createLocaTable from './ttf/tables/loca';
 import createMaxpTable from './ttf/tables/maxp';
 import createNameTable from './ttf/tables/name';
 import createPostTable from './ttf/tables/post';
+import createCOLRTable from './ttf/tables/colr';
+import createCPALTable from './ttf/tables/cpal';
 
 import * as utils from './ttf/utils';
 
@@ -27,6 +29,11 @@ const TABLES = [
   { innerName: 'maxp', order: 3, create: createMaxpTable }, // maxp
   { innerName: 'name', order: 9, create: createNameTable }, // name
   { innerName: 'post', order: 10, create: createPostTable } // post
+];
+
+const COLOR_TABLES = [
+  { innerName: 'COLR', order: 11, create: createCOLRTable },
+  { innerName: 'CPAL', order: 12, create: createCPALTable }
 ];
 
 // Various constants
@@ -91,11 +98,14 @@ export default function generateTTF(font: any) {
     glyph.ttfContours = utils.toRelative(glyph.ttfContours);
   });
 
-  // Add tables
-  const headerSize = 12 + 16 * TABLES.length; // TTF header plus table headers
+  // Add tables. Copy descriptors because offsets and buffers are specific to this font.
+  const tables = [...TABLES, ...(font.colorFont ? COLOR_TABLES : [])].map((table) => ({
+    ...table
+  }));
+  const headerSize = 12 + 16 * tables.length; // TTF header plus table headers
   let bufSize = headerSize;
 
-  TABLES.forEach(function (table: any) {
+  tables.forEach(function (table: any) {
     //store each table in its own buffer
     table.buffer = table.create(font);
     table.length = table.buffer.length;
@@ -107,7 +117,7 @@ export default function generateTTF(font: any) {
   //calculate offsets
   let offset = headerSize;
 
-  [...TABLES]
+  [...tables]
     .sort((a: any, b: any) => a.order - b.order)
     .forEach(function (table: any) {
       table.offset = offset;
@@ -119,18 +129,18 @@ export default function generateTTF(font: any) {
   const buf = new ByteBuffer(bufSize);
 
   //special constants
-  const entrySelector = Math.floor(Math.log(TABLES.length) / Math.LN2);
+  const entrySelector = Math.floor(Math.log(tables.length) / Math.LN2);
   const searchRange = Math.pow(2, entrySelector) * 16;
-  const rangeShift = TABLES.length * 16 - searchRange;
+  const rangeShift = tables.length * 16 - searchRange;
 
   // Add TTF header
   buf.writeUint32(CONST.VERSION);
-  buf.writeUint16(TABLES.length);
+  buf.writeUint16(tables.length);
   buf.writeUint16(searchRange);
   buf.writeUint16(entrySelector);
   buf.writeUint16(rangeShift);
 
-  TABLES.forEach(function (table: any) {
+  tables.forEach(function (table: any) {
     buf.writeUint32(utils.identifier(table.innerName)); //inner name
     buf.writeUint32(table.checkSum); //checksum
     buf.writeUint32(table.offset); //offset
@@ -139,7 +149,7 @@ export default function generateTTF(font: any) {
 
   let headOffset = 0;
 
-  [...TABLES]
+  [...tables]
     .sort((a: any, b: any) => a.order - b.order)
     .forEach(function (table: any) {
       if (table.innerName === 'head') {

@@ -4,6 +4,29 @@ import * as svg from './lib/svg';
 import * as sfnt from './lib/sfnt';
 
 const VERSION_RE = /^(Version )?(\d+[.]\d+)$/i;
+const UINT16_MAX = 0xffff;
+
+export interface RgbaColor {
+  red: number;
+  green: number;
+  blue: number;
+  alpha: number;
+}
+
+export interface Svg2TtfColorLayer {
+  glyphName: string;
+  paletteIndex: number;
+}
+
+export interface Svg2TtfColorBaseGlyph {
+  glyphName: string;
+  layers: Svg2TtfColorLayer[];
+}
+
+export interface Svg2TtfColorFont {
+  baseGlyphs: Svg2TtfColorBaseGlyph[];
+  palettes: RgbaColor[][];
+}
 
 export interface Svg2TtfOptions {
   id?: string;
@@ -15,6 +38,113 @@ export interface Svg2TtfOptions {
   description?: string;
   url?: string;
   ts?: number;
+  colorFont?: Svg2TtfColorFont;
+}
+
+function resolveColorFont(font: sfnt.Font, colorFont: Svg2TtfColorFont): sfnt.ColorFont {
+  if (font.glyphs.length > UINT16_MAX + 1) {
+    throw new Error('svg2ttf: color font glyph IDs exceed the OpenType uint16 limit');
+  }
+  if (colorFont.baseGlyphs.length === 0) {
+    throw new Error('svg2ttf: colorFont must contain at least one base glyph');
+  }
+  if (colorFont.baseGlyphs.length > UINT16_MAX) {
+    throw new Error('svg2ttf: COLR base glyph records exceed the OpenType uint16 limit');
+  }
+  if (colorFont.palettes.length === 0) {
+    throw new Error('svg2ttf: colorFont must contain at least one palette');
+  }
+  if (colorFont.palettes.length > UINT16_MAX) {
+    throw new Error('svg2ttf: CPAL palette count exceeds the OpenType uint16 limit');
+  }
+
+  const colorsPerPalette = colorFont.palettes[0].length;
+  if (colorsPerPalette === 0) {
+    throw new Error('svg2ttf: each colorFont palette must contain at least one color');
+  }
+  if (colorsPerPalette > UINT16_MAX) {
+    throw new Error('svg2ttf: CPAL palette entries exceed the OpenType uint16 limit');
+  }
+  if (colorsPerPalette * colorFont.palettes.length > UINT16_MAX) {
+    throw new Error('svg2ttf: CPAL color records exceed the OpenType uint16 limit');
+  }
+
+  const channelNames: (keyof RgbaColor)[] = ['red', 'green', 'blue', 'alpha'];
+  colorFont.palettes.forEach((palette, paletteIndex) => {
+    if (palette.length !== colorsPerPalette) {
+      throw new Error('svg2ttf: all colorFont palettes must contain the same number of colors');
+    }
+    palette.forEach((color, colorIndex) => {
+      channelNames.forEach((channelName) => {
+        const value = color[channelName];
+        if (!Number.isInteger(value) || value < 0 || value > 255) {
+          throw new Error(
+            `svg2ttf: colorFont palette ${paletteIndex}, color ${colorIndex} ${channelName} channel must be an integer from 0 to 255`
+          );
+        }
+      });
+    });
+  });
+
+  const glyphsByName = new Map<string, sfnt.Glyph[]>();
+  font.glyphs.forEach((glyph) => {
+    const matches = glyphsByName.get(glyph.name) || [];
+    matches.push(glyph);
+    glyphsByName.set(glyph.name, matches);
+  });
+
+  const resolveGlyph = (glyphName: string) => {
+    const matches = glyphsByName.get(glyphName);
+    if (!matches) {
+      throw new Error(`svg2ttf: colorFont references unknown glyph name "${glyphName}"`);
+    }
+    if (matches.length !== 1) {
+      throw new Error(
+        `svg2ttf: colorFont glyph name "${glyphName}" matches multiple generated glyphs`
+      );
+    }
+    return matches[0].id as number;
+  };
+
+  let layerCount = 0;
+  const baseNames = new Set<string>();
+  const baseGlyphs = colorFont.baseGlyphs.map((baseGlyph) => {
+    if (baseNames.has(baseGlyph.glyphName)) {
+      throw new Error(`svg2ttf: colorFont contains duplicate base glyph "${baseGlyph.glyphName}"`);
+    }
+    baseNames.add(baseGlyph.glyphName);
+    if (baseGlyph.layers.length === 0) {
+      throw new Error(
+        `svg2ttf: colorFont base glyph "${baseGlyph.glyphName}" must contain at least one layer`
+      );
+    }
+    layerCount += baseGlyph.layers.length;
+    if (layerCount > UINT16_MAX) {
+      throw new Error('svg2ttf: COLR layer records exceed the OpenType uint16 limit');
+    }
+
+    return {
+      glyphID: resolveGlyph(baseGlyph.glyphName),
+      layers: baseGlyph.layers.map((layer) => {
+        if (
+          !Number.isInteger(layer.paletteIndex) ||
+          layer.paletteIndex < 0 ||
+          (layer.paletteIndex >= colorsPerPalette && layer.paletteIndex !== UINT16_MAX)
+        ) {
+          throw new Error(
+            `svg2ttf: colorFont layer palette index must reference a palette entry or be 0xFFFF`
+          );
+        }
+        return {
+          glyphID: resolveGlyph(layer.glyphName),
+          paletteIndex: layer.paletteIndex
+        };
+      })
+    };
+  });
+
+  baseGlyphs.sort((a, b) => a.glyphID - b.glyphID);
+  return { baseGlyphs, palettes: colorFont.palettes };
 }
 
 export default function svg2ttf(svgString: string, options: Svg2TtfOptions = {}) {
@@ -178,6 +308,10 @@ export default function svg2ttf(svgString: string, options: Svg2TtfOptions = {})
     glyph.id = nextID;
     nextID++;
   });
+
+  if (options.colorFont) {
+    font.colorFont = resolveColorFont(font, options.colorFont);
+  }
 
   glyphs.forEach(function (glyph) {
     // Calculate accuracy for cubicToQuad transformation
