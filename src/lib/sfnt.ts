@@ -342,6 +342,7 @@ export class Font {
 }
 
 export class Glyph {
+  aliases: string[] = [];
   contours: Contour[] = [];
   d: string = '';
   id: string | number = '';

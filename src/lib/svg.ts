@@ -39,6 +39,7 @@ export function getGlyph(glyphElem: any, fontInfo: any) {
   }
 
   glyph.name = glyphElem.getAttribute('glyph-name');
+  glyph.aliases = [];
 
   if (glyphElem.getAttribute('horiz-adv-x')) {
     glyph.width = parseInt(glyphElem.getAttribute('horiz-adv-x'), 10);
@@ -57,8 +58,10 @@ export function deduplicateGlyps(glyphs: any[], ligatures: any[]) {
 
     if (canonical) {
       // Add the code points to the unicode array.
-      // The fields “name” and “character” are not that important so we leave them how we first enounter them and throw the rest away
       canonical.unicode = canonical.unicode.concat(glyph.unicode);
+      if (glyph.name !== canonical.name && !canonical.aliases.includes(glyph.name)) {
+        canonical.aliases.push(glyph.name);
+      }
       glyph.canonical = canonical;
     } else {
       result.push(glyph);

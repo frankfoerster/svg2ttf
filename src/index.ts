@@ -88,9 +88,11 @@ function resolveColorFont(font: sfnt.Font, colorFont: Svg2TtfColorFont): sfnt.Co
 
   const glyphsByName = new Map<string, sfnt.Glyph[]>();
   font.glyphs.forEach((glyph) => {
-    const matches = glyphsByName.get(glyph.name) || [];
-    matches.push(glyph);
-    glyphsByName.set(glyph.name, matches);
+    [glyph.name, ...glyph.aliases].forEach((glyphName) => {
+      const matches = glyphsByName.get(glyphName) || [];
+      matches.push(glyph);
+      glyphsByName.set(glyphName, matches);
+    });
   });
 
   const resolveGlyph = (glyphName: string) => {
@@ -238,6 +240,7 @@ export default function svg2ttf(svgString: string, options: Svg2TtfOptions = {})
     const glyph = new sfnt.Glyph();
 
     glyph.name = svgGlyph.name;
+    glyph.aliases = svgGlyph.aliases;
     glyph.codes = svgGlyph.ligatureCodes || svgGlyph.unicode; // needed for nice validator error output
     glyph.d = svgGlyph.d;
     glyph.height = !isNaN(svgGlyph.height) ? svgGlyph.height : font.height;

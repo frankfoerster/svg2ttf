@@ -100,6 +100,28 @@ describe('color fonts', () => {
     ]);
   });
 
+  it('resolves names of layer glyphs deduplicated by outline', () => {
+    const duplicateOutlineFixture = fixture.replace(
+      '</font>',
+      '<glyph glyph-name="layer-red-alias" d="M0 0H50V50H0Z" /></font>'
+    );
+    const ttf = svg2ttf(duplicateOutlineFixture, {
+      colorFont: {
+        ...colorFont,
+        baseGlyphs: [
+          {
+            glyphName: 'base',
+            layers: [{ glyphName: 'layer-red-alias', paletteIndex: 1 }]
+          }
+        ]
+      },
+      ts: 1457357570
+    });
+    const colr = getTable(ttf, 'COLR');
+
+    expect([colr.getUint16(20), colr.getUint16(22)]).toEqual([2, 1]);
+  });
+
   it('sorts COLR base records by resolved glyph ID', () => {
     const secondBase = {
       glyphName: 'base-two',
