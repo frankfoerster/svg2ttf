@@ -1,6 +1,6 @@
 {
   "name": "@frankfoerster/svg2ttf",
-  "version": "6.2.0",
+  "version": "6.3.0",
   "description": "Converts SVG font to TTF font",
   "keywords": [
     "convertor",
